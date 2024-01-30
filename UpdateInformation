@@ -1,0 +1,60 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickActionWithoutHeader" 
+                access="global" 
+                controller="UpdateInformationController">
+
+    <!-- Attribute Definitions -->
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="accountName" type="String" />
+    <aura:attribute name="contactFirstName" type="String" />
+    <aura:attribute name="contactLastName" type="String" />
+    
+    <aura:attribute name="dataObj" type="UpdateInformationController.DataWrapper" />
+
+    <aura:attribute name="isLoading" type="Boolean" default="false"/>
+    <aura:handler event="force:refreshView" action="{!c.doInit}" />
+
+    <!-- Data Handlers -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <!-- UI Elements -->
+    <div class="slds-p-around_medium" style="{!'background-color: ' + (v.dataObj.oppObj.Client_Information_Updated__c ? '#FFFFFF;' : '#F99292;')}">
+        <lightning:card title="Confirm Names" iconName="{!v.dataObj.oppObj.Client_Information_Updated__c ? 'action:approval' : 'action:announcement'}"
+                class="{!v.dataObj.oppObj.Client_Information_Updated__c ? 'greenBackground' : 'redBackground'}">
+
+        <aura:if isTrue="{!v.isLoading}">
+            <lightning:spinner aura:id="spinner" alternativeText="Loading" />
+        </aura:if>
+        
+        <div class="slds-p-horizontal_small"
+             style="{!'background-color: ' + (v.dataObj.oppObj.Client_Information_Updated__c ? '#FFFFFF;' : '#F99292;')}">
+            <lightning:input label="Account Name" name="accountName" value="{!v.dataObj.accObj.Name}" disabled="{!v.contactFirstName == ''}" />
+            <lightning:input label="GMB Business Name" name="contactGMB" value="{!v.dataObj.conObj.GMB_Business_Name__c}" disabled="true" />
+            
+            <lightning:input label="Contact First Name" name="contactFirstName" value="{!v.dataObj.conObj.FirstName}" disabled="{!v.dataObj.conNotExists}" />
+            <lightning:input label="Contact Last Name" name="contactLastName" value="{!v.dataObj.conObj.LastName}" disabled="{!v.dataObj.conNotExists}" />
+            <lightning:input label="Contact Email" name="contactEmail" value="{!v.dataObj.conObj.Email}" disabled="true" />
+            </div>
+        
+        <div class="slds-p-horizontal_small slds-m-top_small"
+             style="{!'background-color: ' + (v.dataObj.oppObj.Client_Information_Updated__c ? '#FFFFFF;' : '#F99292;')}">
+            <lightning:input type="checkbox" label="Confirmed" 
+                             name="Confirmed"
+                             aura:id="confirmedCheckbox"
+                             onchange="{!c.onConfirmedChanged}"
+                             checked="{!v.dataObj.oppObj.Client_Information_Updated__c}" 
+                             style="{!'background-color: ' + (v.dataObj.oppObj.Client_Information_Updated__c ? '#FFFFFF;' : '#F99292;')}"/>
+        </div>
+
+        <div class="button-group"
+             style="{!'background-color: ' + (v.dataObj.oppObj.Client_Information_Updated__c ? '#FFFFFF;' : '#F99292;')}">
+                <div style="{!'background-color: ' + (v.dataObj.oppObj.Client_Information_Updated__c ? '#FFFFFF;' : '#F99292;')}">
+            <lightning:button variant="brand" 
+                              label="Save" 
+                              title="Save" 
+                              onclick="{! c.handleSave }" 
+                              class="slds-m-top_medium"/>
+        </div>
+        </div>
+        </lightning:card>
+        </div>
+</aura:component>
