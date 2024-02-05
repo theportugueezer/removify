@@ -1,0 +1,28 @@
+trigger UpdateTemplateText on Opportunity (before insert, before update) {
+    for (Opportunity opp : Trigger.new) {
+        // Check if the necessary fields are not null
+        if (opp.Removal_Type_Count__c != null && opp.Number_of_Reviews__c != null && opp.Removal_Type_Text__c != null) {
+            String formattedText = '';
+            
+            if (opp.Number_of_Reviews__c == 1) {
+                // Remove the bullet point and use the text directly
+                formattedText = opp.Removal_Type_Text__c.replace('•', '').trim();
+                opp.Template_Text__c = String.valueOf(opp.Number_of_Reviews__c) +
+                                        ' negative review on ' + formattedText;
+            } else {
+                // Split the Removal_Type_Text__c by '•' and add line breaks for multiple reviews
+                List<String> removalTypes = opp.Removal_Type_Text__c.split('•');
+                for (String type : removalTypes) {
+                    if (String.isNotBlank(type)) {
+                        formattedText += ' • ' + type.trim() + '\n'; // Add each type with a bullet and a newline
+                    }
+                }
+                // Trim the last newline character
+                formattedText = formattedText.trim();
+
+                opp.Template_Text__c =  String.valueOf(opp.Number_of_Reviews__c) +
+                                        ' negative reviews on the following platforms:\n' + formattedText;
+            }
+        }
+    }
+}
