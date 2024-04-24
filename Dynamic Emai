@@ -1,0 +1,196 @@
+<messaging:emailTemplate subject="Your Custom Subject Here" recipientType="Contact" relatedToType="Opportunity">
+    <messaging:htmlEmailBody >
+        <html style="overflow-y: hidden;">
+        <head>
+            <title></title>
+            <style type="text/css">
+    body, p, ul, li, div, span, th, td {
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+        font-size: 12px;
+        color: #222222;
+        line-height: 1.2;
+    }
+    .rta-content {
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+        font-size: 12px;
+        color: #222222; /* Ensure this matches the rest of your email */
+    }
+    .paragraph {
+        background-color: #ffffff;
+        padding: 0 0 6pt;
+        font-weight: 400;
+        font-style: normal;
+        text-decoration: none;
+    }
+    .p2 {
+        background-color: #ffffff;
+        padding: 0 0 6pt;
+        margin: 0;
+        font-weight: 400;
+        font-style: normal;
+        text-decoration: none;
+    }
+    table {
+        border: 1px solid #026494;
+        border-collapse: collapse;
+        width: 515px;
+        margin-bottom: 10px; /* Spacing between tables */
+    }
+    th, td {
+        vertical-align: top;
+        padding: 6px;
+        text-align: left;
+    }
+    th {
+        background-color: #026494;
+        color: #ffffff;
+        font-weight: 700;
+    }
+    .publisher-col { width: 30%; }
+    .normal-col { width: 23.33%; }
+    .express-col { width: 23.33%; }
+    .reviews-col { width: 23.33%; }
+    .monthlyfee-col { width: 16.66%; }
+    .term-col { width: 16.66%; }
+    .pricestandard-col { width: 16.66%; }
+    .expressaddon-col { width: 16.66%; }
+    .deposit-col { width: 16.66%; }
+    .autoticket-col { width: 16.66%; }
+
+    .non-bold-header {
+        background-color: #f1f2f5; /* Light gray background */
+        color: #000000; /* Black text color */
+        font-weight: bold;
+    }
+    
+     ul {
+        margin: 0 0 10px 20px; /* Adjust margins as needed */
+        padding: 0;
+        list-style-type: disc; /* Default disc style */
+    }
+    li {
+        margin-bottom: 6px; /* Space between list items */
+        font-size: 12px; /* Matching font size */
+        color: #222222; /* Text color */
+    }
+    
+    table, th, td {
+        border: 1px solid #026494;
+        border-collapse: collapse;
+        width: 100%;
+        text-align: left;
+        padding: 8px;
+    }
+    th {
+        background-color: #026494;
+        color: white;
+                }
+                
+    .option-col { 
+        width: 30%; 
+        background-color: #026494; /* Keep the same header color */
+        color: #ffffff;
+        font-weight: 700;
+        padding: 6px;
+        text-align: left;
+     }
+    .data-col { 
+        width: 70%; 
+        padding: 6px; 
+        text-align: left;
+        vertical-align: top; 
+</style>
+        </head>
+        <body style="height: auto; min-height: auto;">
+        <p class="paragraph">Hi {!relatedTo.Primary_Contact__r.FirstName},</p>
+
+        <p class="paragraph">Thanks for reaching out. We're looking forward to helping.</p>
+
+        <div class="paragraph">
+            <apex:outputField value="{!relatedTo.Email_Body__c}" />
+        </div>
+
+        <p class="p2">Here's a bit about Removify:</p>
+        
+        <ul>
+        <li>We've successfully removed over 37,000 online reviews in the past 12 months.</li>
+        <li>We use our own cutting-edge technology to fast-track removals.</li>
+        <li>100% transparency. Access our online portal to track removal progress.</li>
+        <li>Trusted by over 6,000 businesses worldwide, making us the market leaders by far.</li>
+    </ul>
+
+    <p class="paragraph">The process can take anywhere from 5 to 60 days, however our average removal time is currently around 15 days.</p>
+
+
+        <h3>Reviews we'll work on</h3>
+        <table>
+            <tr>
+        <th class="publisher-col right">Publisher</th>
+        <th class="normal-col">Normal</th>
+        <th class="express-col">Express</th>
+        <th class="reviews-col">Which Reviews</th>
+            </tr>
+            <apex:repeat value="{!relatedTo.Opportunity_Content_Items__r}" var="item">
+                <tr>
+            <td class="publisher-col right">{!item.Publisher__c}</td>
+            <td class="normal-col">{!FLOOR(item.Qty_Normal__c)}</td>
+            <td class="express-col">{!FLOOR(item.Qty_Express__c)}</td>
+            <td class="reviews-col">{!item.Which_Reviews__c}</td>
+                </tr>
+            </apex:repeat>
+        </table>
+
+        <h3>Removify Products</h3>
+         <!-- Render table only if there are service products -->
+            <apex:repeat value="{!relatedTo.Opportunity_Service_Products__r}" var="prod">
+                <table>
+         <!-- First row with Product spanning all columns -->
+                <tr>
+                    <th colspan="7">Option: {!prod.Service_Product__r.Product_Email_Name__c}</th>
+                </tr>
+                    <tr>
+                        <th class="monthlyfee-col right non-bold-header">Monthly Fee</th>
+                        <th class="term-col non-bold-header">Term</th>
+                        <th class="pricestandard-col non-bold-header">Price</th>
+                        <th class="expressaddon-col non-bold-header">Express Charge</th>
+                        <th class="deposit-col non-bold-header">Deposit</th>
+                        <th class="autoticket-col non-bold-header">Auto Ticket</th>
+                    </tr>
+                    <tr>
+                        <td class="monthlyfee-col right">${!FLOOR(prod.Monthly_Fee__c)}</td>
+                        <td class="term-col">{!FLOOR(prod.Minimum_Term__c)}</td>
+                        <td class="pricestandard-col">${!FLOOR(prod.Price_Per_Standard_Review__c)}</td>
+                        <td class="expressaddon-col">${!FLOOR(prod.Express_Addon__c)}</td>
+                        <td class="deposit-col">${!FLOOR(prod.Deposit__c)}</td>
+                        <td class="autoticket-col">{!prod.Auto_Ticket_Create__c}</td>
+                    </tr>
+                </table>
+                <!-- Sub-table for Includes and How to Start -->
+                <table style="margin-top: 10px;">
+                    <tr>
+                        <th>Includes</th>
+                        <th>How to Start</th>
+                    </tr>
+                    <tr>
+                        <td class="rta-content" style="white-space:normal; padding:10px;">
+                        <apex:outputText value="{!prod.Service_Product__r.Includes__c}" escape="false" styleClass="rta-content"/>
+                        </td>
+                        <td>Payment Link</td>
+                    </tr>
+                </table>
+                <br/>
+            </apex:repeat>
+
+        <p class="p2">&nbsp;</p>
+
+        <p style="line-height: 1.295; margin-right: -3px; margin-bottom: 11px;">
+            <span style="font-size:12px;">
+                <span style="font-family:Verdana,Arial,Helvetica,sans-serif;">
+                    {!relatedTo.Owner.Signature1__c}
+                </span>
+            </span>
+        </p>
+        </body>
+        </html>
+    </messaging:htmlEmailBody>
+</messaging:emailTemplate>
