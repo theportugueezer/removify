@@ -1,0 +1,128 @@
+public with sharing class OpportunityProductsController {
+    
+     public class ResponseData {
+        @AuraEnabled public List<Opportunity_Service_Product__c> oppContentItems {get; set;}
+
+    }
+    
+    @AuraEnabled
+    public static List<Opportunity_Service_Product__c> getOpportunityLineItems(String oppId){
+        List<Opportunity_Service_Product__c> oppServiceProdItems = [
+            SELECT Id, Name, Salesforce_Link__c, Service_Product_Name__c, Price_Per_Standard_Review__c, Price_Per_Premium_Review__c, Express_Addon__c, Monthly_Fee__c, Minimum_Term__c, Auto_Ticket_Create__c, Purchased__c, Opportunity__c, Service_Product__c,
+             Service_Product__r.Product_Email_Name__c, Service_Product__r.Product_Email_description__c, Service_Product__r.Opportunity_Service_Viewable_Fields__c, Service_Product__r.Opportunity_Service_Editable_Fields__c, Deposit__c, Upfront_Payment_Amount__c, Payment_Link_Detox__c, Bulk_Price__c, Payment_Link_Monthly_Service_Activation__c 
+            FROM Opportunity_Service_Product__c
+            WHERE Opportunity__c = :oppId
+            ORDER BY Purchased__c desc
+        ];
+        
+        
+        return oppServiceProdItems;
+    }
+    
+     //2850
+    @AuraEnabled
+    public static AddOpportunityController.ResponseData initializeDataServiceProducts(String oppId) {
+        AddOpportunityController.ResponseData rd = new AddOpportunityController.ResponseData();
+        rd.oppObj = new Opportunity();
+        rd.lstSelectedRemovalTypes = new List<String>(); 
+        rd.lstRemovalTypes  = new List<AddOpportunityController.RemovalPicklistData>(); 
+        
+        for(Opportunity_Content_Item__c oppContentItem :[
+            Select Id, Publisher__c 
+            from Opportunity_Content_Item__c 
+            where Opportunity__c = :oppId
+        ]) {
+            rd.lstSelectedRemovalTypes.add(oppContentItem.Publisher__c);
+        }
+        
+        Opportunity oppObj = [
+            SELECT Id, Name, Country__c, Currency__c, Account.Name, Service_Type__c, Removal_Type__c, AMPLIFY_Type__c, Watchdog_Type__c, Currency_Symbol__c
+            FROM Opportunity 
+            WHERE Id =:oppId
+        ];
+        rd.oppObj = oppObj;
+        
+        rd = AddOpportunityController.getServiceProducts(JSON.serialize(rd), rd.oppObj.Currency__c);
+        return rd;
+    }
+    
+  
+   
+    //2850
+     @AuraEnabled
+    public static ResponseData createOpportunitiesServiceProduct(String jsonObject, String oppId) {
+        AddOpportunityController.ResponseData rd = (AddOpportunityController.ResponseData) JSON.deserialize(
+            (jsonObject), AddOpportunityController.ResponseData.class);
+        System.debug('rd '+rd);
+                
+      
+        AddOpportunityController.createServiceProducts(rd);
+        // String ss = lstOppServProducts.get(100).iD;
+
+        System.debug('oppObj '+rd.oppObj);
+        System.debug('lstSelectedServiceProducts '+rd.lstSelectedServiceProducts);
+        return getOpportunityLineItemsUpdated(oppId);
+        //return rd;
+    }
+    
+    
+    @AuraEnabled
+    public static ResponseData getOpportunityLineItemsUpdated(String oppId){
+        ResponseData rd = new ResponseData();
+        List<Opportunity_Service_Product__c> oppServiceProdItems = [
+            SELECT Id, Name, Salesforce_Link__c, Service_Product_Name__c, Price_Per_Standard_Review__c, Price_Per_Premium_Review__c, Express_Addon__c, Monthly_Fee__c, Minimum_Term__c, Auto_Ticket_Create__c, Purchased__c, Opportunity__c, Service_Product__c, 
+            Service_Product__r.Product_Email_Name__c, Service_Product__r.Product_Email_description__c, Service_Product__r.Opportunity_Service_Editable_Fields__c, Service_Product__r.Opportunity_Service_Viewable_Fields__c, Deposit__c, Upfront_Payment_Amount__c, Service_Product__R.Bulk_Price__c, Payment_Link_Detox__c, Payment_Link_Monthly_Service_Activation__c
+            FROM Opportunity_Service_Product__c
+            WHERE Opportunity__c = :oppId 
+            ORDER BY Purchased__c desc
+        ];
+        rd.oppContentItems = oppServiceProdItems;
+		
+        //3103
+        Id profileId=userinfo.getProfileId();
+        List<String> lstAdminProfiles = new List<String>();
+        String adminProfileIds = Label.OSP_Admin_Permission_Profiles;
+        if (String.isNotBlank(adminProfileIds)) {
+            lstAdminProfiles = adminProfileIds.split(';');
+        }
+        if (lstAdminProfiles.contains(profileId)) {
+            for (Opportunity_Service_Product__c osp :oppServiceProdItems) {
+                osp.Service_Product__r.Opportunity_Service_Editable_Fields__c = null;
+                osp.Service_Product__r.Opportunity_Service_Viewable_Fields__c = null;
+            }        
+        }
+        
+        System.debug('oppServiceProdItems '+oppServiceProdItems.size());
+        return rd;
+    }
+
+    @AuraEnabled
+    public static void updateOpportunityLineItems(List<Opportunity_Service_Product__c> oppLineItems){
+        update oppLineItems;
+    }
+    
+    
+    @AuraEnabled
+    public static void updateRecords(String jsonString){
+        try{
+            List<Opportunity_Service_Product__c> records = (List<Opportunity_Service_Product__c>) JSON.deserialize(jsonString, List<Opportunity_Service_Product__c>.class);
+            update records;
+        }catch(Exception e){
+            throw new AuraHandledException(e.getMessage());
+        }
+    }
+    
+    @AuraEnabled
+    public static ResponseData deleteRecord(String recordIdValue, String oppId){
+        ResponseData rd = new ResponseData();
+        //        try{
+        Opportunity_Service_Product__c oci = new Opportunity_Service_Product__c();
+        oci.Id = recordIdValue;
+        delete oci;
+        
+        return getOpportunityLineItemsUpdated(oppId);
+  //      }catch(Exception e){
+    //        throw new AuraHandledException(e.getMessage());
+     //   }
+    }
+}
